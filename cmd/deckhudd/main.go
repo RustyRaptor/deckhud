@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/RustyRaptor/deckhud/internal/appwatch"
+	"github.com/RustyRaptor/deckhud/internal/autostart"
 	"github.com/RustyRaptor/deckhud/internal/binding"
 	"github.com/RustyRaptor/deckhud/internal/control"
 	"github.com/RustyRaptor/deckhud/internal/hid"
@@ -24,10 +25,12 @@ import (
 const usage = `usage: deckhudd <command>
 
 commands:
-  run [ui-dir]    run the daemon and launch the overlay from ui-dir
+  run [ui-dir]    (default) run the daemon and launch the overlay from ui-dir
                   (default: ../share/deckhud/ui next to the binary)
   events          run without the overlay, printing events as JSON lines
   demo [ui-dir]   play a scripted session through the overlay (no controller needed)
+  autostart on|off  start with Plasma via the Background portal (Flatpak);
+                  native installs use the systemd user unit instead
   peek            toggle the cheat sheet in the running daemon
                   (bind it to a KDE shortcut, then map a Steam button to that)
   find            print the Deck controller hidraw device
@@ -38,8 +41,7 @@ commands:
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprint(os.Stderr, usage)
-		os.Exit(2)
+		os.Args = append(os.Args, "run") // launched from the menu or autostart
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
@@ -51,7 +53,7 @@ func main() {
 		if len(os.Args) > 2 {
 			dir = os.Args[2]
 		}
-		err = run(ctx, runOpts{uiDir: dir})
+		err = run(ctx, runOpts{uiDir: dir, autostart: true})
 	case "demo":
 		dir := defaultUIDir()
 		if len(os.Args) > 2 {
@@ -60,6 +62,12 @@ func main() {
 		err = demo(ctx, dir)
 	case "events":
 		err = run(ctx, runOpts{print: true})
+	case "autostart":
+		enable := len(os.Args) < 3 || os.Args[2] != "off"
+		var granted bool
+		if granted, err = autostart.Request(ctx, enable, []string{"deckhudd", "run"}); err == nil {
+			fmt.Println("autostart:", map[bool]string{true: "on", false: "off"}[granted])
+		}
 	case "peek":
 		err = control.Send(control.DefaultPath(), "peek")
 	case "find":
@@ -156,9 +164,17 @@ func record(ctx context.Context, path string) error {
 	return err
 }
 
+// steamRoot finds the Steam data directory of a native or Flatpak Steam.
 func steamRoot() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".local", "share", "Steam")
+	native := filepath.Join(home, ".local", "share", "Steam")
+	flatpak := filepath.Join(home, ".var", "app", "com.valvesoftware.Steam", ".local", "share", "Steam")
+	if _, err := os.Stat(native); err != nil {
+		if _, err := os.Stat(flatpak); err == nil {
+			return flatpak
+		}
+	}
+	return native
 }
 
 // activeConfig replays Steam's controller log and loads the config it points at.

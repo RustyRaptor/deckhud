@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.RustyRaptor.deckhud</id>
+  <name>deckhud</name>
+  <summary>See your Steam Input radial menus, key chords and layers on the desktop</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.rustyraptor">
+    <name>RustyRaptor</name>
+  </developer>
+  <description>
+    <p>
+      deckhud brings the Steam Deck's controller feedback to KDE Plasma's Desktop Mode, where Steam
+      does not draw its own overlay. It shows translucent, click-through overlays tinted with your
+      KDE accent colour:
+    </p>
+    <ul>
+      <li>Radial menu HUD: see which radial item your stick is pointing at before you let go</li>
+      <li>Key-chord toasts: see which keys a button just sent, for example R4 → Meta + Shift + .</li>
+      <li>Layer cheat sheet: see what every control does when you switch action sets or hold a layer</li>
+    </ul>
+    <p>
+      deckhud reads your existing Steam Input layout and the controller's state; it never changes
+      either. It needs KDE Plasma on Wayland and a Steam Deck's built-in controller.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.RustyRaptor.deckhud.desktop</launchable>
+  <url type="homepage">https://github.com/RustyRaptor/deckhud</url>
+  <url type="bugtracker">https://github.com/RustyRaptor/deckhud/issues</url>
+  <url type="vcs-browser">https://github.com/RustyRaptor/deckhud</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Radial menu selection</caption>
+      <image>https://raw.githubusercontent.com/RustyRaptor/deckhud/v0.1.0/docs/screenshots/radial.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Key-chord feedback</caption>
+      <image>https://raw.githubusercontent.com/RustyRaptor/deckhud/v0.1.0/docs/screenshots/chords.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Layer cheat sheet</caption>
+      <image>https://raw.githubusercontent.com/RustyRaptor/deckhud/v0.1.0/docs/screenshots/sheet.png</image>
+    </screenshot>
+  </screenshots>
+  <categories>
+    <category>Utility</category>
+  </categories>
+  <keywords>
+    <keyword>Steam</keyword>
+    <keyword>Steam Deck</keyword>
+    <keyword>controller</keyword>
+    <keyword>radial menu</keyword>
+    <keyword>overlay</keyword>
+  </keywords>
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+  <supports>
+    <control>gamepad</control>
+  </supports>
+  <content_rating type="oars-1.1"/>
+  <branding>
+    <color type="primary" scheme_preference="light">#c9c5f2</color>
+    <color type="primary" scheme_preference="dark">#2b2a3a</color>
+  </branding>
+  <releases>
+    <release version="0.1.0" date="2026-10-30">
+      <description>
+        <p>First release: radial menu HUD, key-chord toasts and layer cheat sheet for KDE Plasma on Wayland.</p>
+      </description>
+    </release>
+  </releases>
+</component>

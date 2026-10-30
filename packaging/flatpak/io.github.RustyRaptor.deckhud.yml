@@ -1,0 +1,88 @@
+# Development manifest: builds the working tree. The Flathub manifest is the
+# same with the deckhud source switched to a git tag (see packaging/flatpak/README.md).
+id: io.github.RustyRaptor.deckhud
+runtime: org.kde.Platform
+runtime-version: '6.11'
+sdk: org.kde.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.golang
+command: deckhudd
+finish-args:
+  # Overlay on KDE Plasma (wlr-layer-shell).
+  - --socket=wayland
+  # Raw controller state from /dev/hidraw*; no narrower permission covers hidraw.
+  - --device=all
+  # Read-only: Steam Input layouts, controller.txt (active app) and binding icons.
+  - --filesystem=~/.local/share/Steam:ro
+  - --filesystem=~/.var/app/com.valvesoftware.Steam/.local/share/Steam:ro
+modules:
+  - name: layer-shell-qt
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DBUILD_TESTING=OFF
+    sources:
+      - type: git
+        url: https://invent.kde.org/plasma/layer-shell-qt.git
+        tag: v6.7.3
+        commit: 4761442255ded65396ac3cd2af902969ef5dd5d8
+
+  - name: deckhud
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/golang/bin
+      env:
+        CGO_ENABLED: '0'
+        GOFLAGS: -mod=vendor -trimpath
+        GOTOOLCHAIN: local
+        GOCACHE: /run/build/deckhud/.gocache
+    build-commands:
+      - go build -ldflags "-s -w" -o /app/bin/deckhudd ./cmd/deckhudd
+      - cmake -S launcher -B build-launcher -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/app
+      - cmake --build build-launcher
+      - cmake --install build-launcher
+      - install -Dm644 -t /app/share/deckhud/ui ui/main.qml
+      - install -Dm644 -t /app/share/deckhud/ui/components ui/components/*.qml
+      - install -Dm644 data/io.github.RustyRaptor.deckhud.desktop -t /app/share/applications
+      - install -Dm644 data/io.github.RustyRaptor.deckhud.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 data/io.github.RustyRaptor.deckhud.svg -t /app/share/icons/hicolor/scalable/apps
+    sources:
+      - type: dir
+        path: ../..
+        skip:
+          - .flatpak-builder
+          - build-flatpak
+          - bin
+          - vendor
+      # Go modules, rebuilt into vendor/ so the build works offline.
+      - type: archive
+        url: https://proxy.golang.org/github.com/coder/websocket/@v/v1.8.15.zip
+        sha256: 4f1d890bc5131f335737bbb6241e3958758c8774b3e6d1c905f713f604af6209
+        strip-components: 3
+        dest: vendor/github.com/coder/websocket
+      - type: archive
+        url: https://proxy.golang.org/github.com/godbus/dbus/v5/@v/v5.2.4.zip
+        sha256: 2a3a2996c274cbb735aa7f634dbcc0b292c0dff154447896d3a95955d078fb83
+        strip-components: 4
+        dest: vendor/github.com/godbus/dbus/v5
+      - type: archive
+        url: https://proxy.golang.org/golang.org/x/sys/@v/v0.27.0.zip
+        sha256: e11dcde2289e0d45eabb06ea59aab05080870bab5753f524ed26df23ec8bddee
+        strip-components: 3
+        dest: vendor/golang.org/x/sys
+      - type: inline
+        dest: vendor
+        dest-filename: modules.txt
+        contents: |
+          # github.com/coder/websocket v1.8.15
+          ## explicit; go 1.23
+          github.com/coder/websocket
+          github.com/coder/websocket/internal/bpool
+          github.com/coder/websocket/internal/errd
+          github.com/coder/websocket/internal/util
+          github.com/coder/websocket/internal/wsjs
+          # github.com/godbus/dbus/v5 v5.2.4
+          ## explicit; go 1.20
+          github.com/godbus/dbus/v5
+          # golang.org/x/sys v0.27.0
+          ## explicit; go 1.18
+          golang.org/x/sys/unix

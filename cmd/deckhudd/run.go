@@ -17,6 +17,7 @@ import (
 
 	"github.com/RustyRaptor/deckhud/internal/accent"
 	"github.com/RustyRaptor/deckhud/internal/appwatch"
+	"github.com/RustyRaptor/deckhud/internal/autostart"
 	"github.com/RustyRaptor/deckhud/internal/control"
 	"github.com/RustyRaptor/deckhud/internal/engine"
 	"github.com/RustyRaptor/deckhud/internal/hid"
@@ -27,9 +28,10 @@ import (
 const protocolVersion = 1
 
 type runOpts struct {
-	uiDir  string     // directory holding main.qml; empty = don't launch the UI
-	print  bool       // print events as JSON lines on stdout
-	script []demoStep // play this instead of reading the controller
+	uiDir     string     // directory holding main.qml; empty = don't launch the UI
+	print     bool       // print events as JSON lines on stdout
+	autostart bool       // ask the Background portal for autostart (Flatpak)
+	script    []demoStep // play this instead of reading the controller
 }
 
 // daemon owns the engine and the config it was built from.
@@ -69,6 +71,13 @@ func run(ctx context.Context, opts runOpts) error {
 	defer srv.Close()
 	url := fmt.Sprintf("ws://%s/%s", ln.Addr(), token)
 
+	if opts.autostart && os.Getenv("FLATPAK_ID") != "" {
+		go func() { // ask once; KDE remembers the answer
+			if _, err := autostart.Request(ctx, true, []string{"deckhudd", "run"}); err != nil {
+				fmt.Fprintln(os.Stderr, "deckhudd: autostart:", err)
+			}
+		}()
+	}
 	if err := d.reload(true); err != nil {
 		fmt.Fprintln(os.Stderr, "deckhudd: config:", err)
 	}
@@ -128,7 +137,8 @@ func (d *daemon) command(cmd string) error {
 func accentMsg(hex string) map[string]any { return map[string]any{"type": "accent", "color": hex} }
 
 func (d *daemon) configMsg() map[string]any {
-	return map[string]any{"type": "config", "app": d.app.App, "title": d.cfg.Title}
+	icons := filepath.Join(steamRoot(), "tenfoot", "resource", "images", "library", "controller", "binding_icons")
+	return map[string]any{"type": "config", "app": d.app.App, "title": d.cfg.Title, "iconDir": "file://" + icons}
 }
 
 func (d *daemon) emit(v any) {
@@ -228,11 +238,22 @@ func (d *daemon) readController(ctx context.Context) {
 	}
 }
 
+// uiCommand prefers the bundled deckhud-ui launcher (Flatpak, packaged
+// installs) and falls back to the system qml runner.
+func uiCommand(ctx context.Context, dir, url string) *exec.Cmd {
+	if exe, err := os.Executable(); err == nil {
+		launcher := filepath.Join(filepath.Dir(exe), "deckhud-ui")
+		if _, err := os.Stat(launcher); err == nil {
+			return exec.CommandContext(ctx, launcher, filepath.Join(dir, "main.qml"), url)
+		}
+	}
+	return exec.CommandContext(ctx, "/usr/lib/qt6/bin/qml", filepath.Join(dir, "main.qml"), "--", url)
+}
+
 // superviseUI keeps the QML overlay running, restarting it if it exits.
 func superviseUI(ctx context.Context, dir, url string) {
-	qml := "/usr/lib/qt6/bin/qml"
 	for ctx.Err() == nil {
-		cmd := exec.CommandContext(ctx, qml, filepath.Join(dir, "main.qml"), "--", url)
+		cmd := uiCommand(ctx, dir, url)
 		cmd.Env = append(os.Environ(), "QT_FORCE_STDERR_LOGGING=1")
 		cmd.Stdout, cmd.Stderr = os.Stderr, os.Stderr
 		cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGTERM}

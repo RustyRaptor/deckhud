@@ -1,5 +1,4 @@
 import QtQuick
-import QtCore
 import QtWebSockets
 import org.kde.layershell as LayerShell
 import "components"
@@ -26,8 +25,6 @@ Window {
     Hud {
         id: hud
         anchors.fill: parent
-        iconDir: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
-                 + "/Steam/tenfoot/resource/images/library/controller/binding_icons"
     }
 
     WebSocket {

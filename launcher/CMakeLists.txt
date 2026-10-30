@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.21)
+project(deckhud-ui LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Gui Qml)
+add_executable(deckhud-ui main.cpp)
+target_link_libraries(deckhud-ui PRIVATE Qt6::Gui Qt6::Qml)
+install(TARGETS deckhud-ui)

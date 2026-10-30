@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=deckhud
+GenericName=Steam Input HUD
+Comment=On-screen radial menus, key-chord feedback and layer cheat sheets for Steam Input in Desktop Mode
+Exec=deckhudd run
+Icon=io.github.RustyRaptor.deckhud
+Terminal=false
+StartupNotify=false
+NoDisplay=false
+Categories=Utility;
+Keywords=steam;deck;controller;gamepad;radial;overlay;hud;input;

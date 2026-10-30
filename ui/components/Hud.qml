@@ -32,6 +32,10 @@ Item {
             if (/^#[0-9a-fA-F]{6}$/.test(msg.color ?? ""))
                 accent = msg.color
             break
+        case "config":
+            if (msg.iconDir)
+                iconDir = msg.iconDir
+            break
         case "hello":
             quietNextState = true
             break

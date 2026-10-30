@@ -75,5 +75,12 @@ Item {
             wait(600)
             compare(h.accent, Qt.color("#f09cca"), "invalid colours are ignored")
         }
+    
+        function test_configSetsIconDir() {
+            const h = createTemporaryObject(hudComponent, root)
+            h.handle({ type: "config", app: "413080", title: "desk", iconDir: "file:///steam/icons" })
+            compare(h.iconDir, "file:///steam/icons")
+            compare(h.radial.iconDir, "file:///steam/icons")
+        }
     }
 }

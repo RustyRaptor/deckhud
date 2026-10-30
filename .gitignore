@@ -1,3 +1,7 @@
 /bin/
 *.test
 /testdata/hid/local/
+/vendor/
+/.flatpak-builder/
+/build-flatpak/
+/.flatpak-repo/

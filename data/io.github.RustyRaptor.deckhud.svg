@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b2a3a"/>
+      <stop offset="1" stop-color="#16151f"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="url(#bg)"/>
+  <g transform="translate(64 64)" fill="none" stroke-width="22">
+    <circle r="36" stroke="#3d3b52"/>
+    <!-- highlighted wedge: one sixth of the ring, centred at the top -->
+    <path d="M -18 -31.18 A 36 36 0 0 1 18 -31.18" stroke="#9a93e3"/>
+  </g>
+  <g transform="translate(64 64)" stroke="#16151f" stroke-width="3">
+    <line x1="0" y1="-25" x2="0" y2="-47" transform="rotate(30)"/>
+    <line x1="0" y1="-25" x2="0" y2="-47" transform="rotate(90)"/>
+    <line x1="0" y1="-25" x2="0" y2="-47" transform="rotate(150)"/>
+    <line x1="0" y1="-25" x2="0" y2="-47" transform="rotate(210)"/>
+    <line x1="0" y1="-25" x2="0" y2="-47" transform="rotate(270)"/>
+    <line x1="0" y1="-25" x2="0" y2="-47" transform="rotate(330)"/>
+  </g>
+  <circle cx="64" cy="64" r="16" fill="#9a93e3"/>
+  <circle cx="64" cy="64" r="7" fill="#16151f"/>
+</svg>
