@@ -1,0 +1,25 @@
+[tools]
+go = "1.27.3"
+
+[env]
+CGO_ENABLED = "0"
+
+[tasks.test]
+description = "Run all tests"
+depends = ["test:go", "test:qml"]
+
+[tasks."test:go"]
+description = "Run Go tests"
+run = "go test ./..."
+
+[tasks."test:qml"]
+description = "Run QML tests offscreen"
+run = "[ -d ui/tests ] && QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input ui/tests -import ui || true"
+
+[tasks.check]
+description = "Vet and format check"
+run = ["go vet ./...", "test -z \"$(gofmt -l .)\""]
+
+[tasks.build]
+description = "Build the daemon"
+run = "go build -o bin/deckhudd ./cmd/deckhudd"
