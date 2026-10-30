@@ -9,15 +9,22 @@ import (
 	"math"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 
+	"github.com/RustyRaptor/deckhud/internal/appwatch"
+	"github.com/RustyRaptor/deckhud/internal/binding"
 	"github.com/RustyRaptor/deckhud/internal/hid"
+	"github.com/RustyRaptor/deckhud/internal/steamcfg"
 )
 
 const usage = `usage: deckhudd <command>
 
 commands:
   find            print the Deck controller hidraw device
+  dump            print the active Steam Input config as deckhud sees it
   monitor         print button changes and stick angles live
   record <file>   save raw controller reports to <file> (Ctrl+C to stop)
 `
@@ -37,6 +44,8 @@ func main() {
 		if dev, err = hid.Find("/sys"); err == nil {
 			fmt.Println(dev)
 		}
+	case "dump":
+		err = dump()
 	case "monitor":
 		err = monitor(ctx)
 	case "record":
@@ -122,4 +131,75 @@ func record(ctx context.Context, path string) error {
 		return nil
 	}
 	return err
+}
+
+func steamRoot() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".local", "share", "Steam")
+}
+
+// activeConfig replays Steam's controller log and loads the config it points at.
+func activeConfig() (*steamcfg.Config, string, appwatch.State, error) {
+	var st appwatch.State
+	log, err := os.ReadFile(filepath.Join(steamRoot(), "logs", "controller.txt"))
+	if err != nil {
+		return nil, "", st, err
+	}
+	for _, line := range strings.Split(string(log), "\n") {
+		st.Feed(line)
+	}
+	st.Flush()
+	path, err := steamcfg.Locator{SteamRoot: steamRoot()}.Resolve(st.App, st.ConfigSets)
+	if err != nil {
+		return nil, "", st, err
+	}
+	cfg, err := steamcfg.LoadFile(path)
+	return cfg, path, st, err
+}
+
+func dump() error {
+	cfg, path, st, err := activeConfig()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("app %s via %v\nconfig %q (%s)\n", st.App, st.ConfigSets, cfg.Title, filepath.Base(path))
+	for _, set := range cfg.Sets {
+		kind := "action set"
+		if set.Layer {
+			kind = "layer of " + set.Parent
+		}
+		fmt.Printf("\n[%d] %s (%s)\n", set.ID+1, set.Title, kind)
+		var layers []*steamcfg.Set
+		base := set
+		if set.Layer {
+			layers, base = []*steamcfg.Set{set}, cfg.Base()
+		}
+		sources := map[string]bool{}
+		for _, sb := range set.Sources {
+			sources[sb.Source] = true
+		}
+		var names []string
+		for n := range sources {
+			names = append(names, n)
+		}
+		sort.Strings(names)
+		for _, src := range names {
+			g := cfg.ActiveGroup(base, layers, false, src)
+			if g == nil {
+				continue
+			}
+			fmt.Printf("  %-15s %s\n", src, g.Mode)
+			var inputs []string
+			for in := range g.Inputs {
+				inputs = append(inputs, in)
+			}
+			sort.Strings(inputs)
+			for _, in := range inputs {
+				for _, a := range cfg.Activators(base, layers, false, src, in) {
+					fmt.Printf("      %-26s %-12s %s\n", in, a.Kind, strings.Join(binding.Chord(a.Bindings), " + "))
+				}
+			}
+		}
+	}
+	return nil
 }
