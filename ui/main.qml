@@ -20,7 +20,6 @@ Window {
                              | LayerShell.Window.AnchorLeft | LayerShell.Window.AnchorRight
     LayerShell.Window.keyboardInteractivity: LayerShell.Window.KeyboardInteractivityNone
     LayerShell.Window.exclusionZone: -1
-    LayerShell.Window.activateOnShow: false
 
     Hud {
         id: hud

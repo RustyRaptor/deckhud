@@ -16,6 +16,9 @@ controllers, desktops and X11 are non-goals for v1.
 
 ## Progress log
 
+- **2026-10-30 (AppImage):** self-contained AppImage built in a Debian 13 container (bundled Qt 6.8 +
+  LayerShellQt v6.4.5), XDG autostart, CI artifact on every push and release asset on `v*` tags.
+  Dropped `LayerShell.Window.activateOnShow` (absent before LayerShellQt 6.5).
 - **2026-10-30 (later):** M7 cheat sheet (engine snapshot, QML `LayerSheet`, `deckhudd peek`), accent via the XDG settings portal (Kirigami didn't follow slideshow accents), Flatpak packaging verified ([spike](research/flatpak-spike.md)), MIT licence, `v0.1.0` tag. Flathub submission dropped: its policy forbids AI-assisted manifests/submissions.
 - **2026-10-30:** M1–M6 core landed (parser, config model, HID, engine, daemon, overlay). Still needs hand-checking on the Deck: back-button bit mapping, radial geometry and fire behaviour, long/double-press timing, click-through.
 

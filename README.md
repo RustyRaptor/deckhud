@@ -38,6 +38,23 @@ mise run build
 
 ## Install
 
+### AppImage (recommended)
+
+Download `deckhud-*-x86_64.AppImage` from [Releases](https://github.com/RustyRaptor/deckhud/releases),
+then:
+
+```sh
+chmod +x deckhud-*-x86_64.AppImage
+./deckhud-*-x86_64.AppImage                 # run the HUD
+./deckhud-*-x86_64.AppImage autostart on    # start it with Plasma (XDG autostart entry)
+./deckhud-*-x86_64.AppImage peek            # toggle the cheat sheet
+```
+
+It bundles its own Qt, so it only needs a Plasma 6 Wayland session with glibc 2.41 or newer
+(SteamOS, Arch, Fedora 42+, Debian 13+, …). [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever)
+can integrate it and apply updates (the release ships a `.zsync` file).
+Build it yourself with `mise run appimage` (needs podman).
+
 ### Flatpak
 
 Build and install locally: see [packaging/flatpak](packaging/flatpak/README.md). Not on Flathub (see that page for why).

@@ -43,3 +43,11 @@ run = [
   "rm -rf ~/.local/share/deckhud",
   "systemctl --user daemon-reload",
 ]
+
+[tasks.appimage]
+description = "Build the AppImage in a podman container (needs podman)"
+depends = ["build"]
+run = [
+  "podman build -t deckhud-appimage packaging/appimage",
+  "podman run --rm -e VERSION=$(git describe --tags --always) -v $PWD:/src/deckhud:Z deckhud-appimage /src/deckhud/packaging/appimage/build.sh",
+]

@@ -1,0 +1,42 @@
+name: appimage
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  appimage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build daemon
+        run: go build -trimpath -ldflags "-s -w" -o bin/deckhudd ./cmd/deckhudd
+        env:
+          CGO_ENABLED: "0"
+      - name: Build AppImage
+        run: |
+          podman build -t deckhud-appimage packaging/appimage
+          podman run --rm -e VERSION="$(git describe --tags --always)" \
+            -v "$PWD:/src/deckhud:Z" deckhud-appimage /src/deckhud/packaging/appimage/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deckhud-appimage
+          path: build-appimage/deckhud-*.AppImage*
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build-appimage/deckhud-*.AppImage* \
+            --title "deckhud ${GITHUB_REF_NAME#v}" --generate-notes \
+          || gh release upload "$GITHUB_REF_NAME" build-appimage/deckhud-*.AppImage* --clobber

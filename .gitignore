@@ -5,3 +5,4 @@
 /.flatpak-builder/
 /build-flatpak/
 /.flatpak-repo/
+/build-appimage/
