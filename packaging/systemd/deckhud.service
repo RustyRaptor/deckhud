@@ -1,0 +1,13 @@
+[Unit]
+Description=deckhud: on-screen HUD for Steam Input in Plasma
+Documentation=https://github.com/RustyRaptor/deckhud
+PartOf=graphical-session.target
+After=plasma-workspace.target
+
+[Service]
+ExecStart=%h/.local/bin/deckhudd run
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=plasma-workspace.target

@@ -23,3 +23,23 @@ run = ["go vet ./...", "test -z \"$(gofmt -l .)\"", "/usr/lib/qt6/bin/qmllint ui
 [tasks.build]
 description = "Build the daemon"
 run = "go build -o bin/deckhudd ./cmd/deckhudd"
+
+[tasks.install]
+description = "Install deckhudd, the overlay and the systemd user unit under $HOME (does not enable it)"
+depends = ["build"]
+run = [
+  "install -Dm755 bin/deckhudd ~/.local/bin/deckhudd",
+  "rm -rf ~/.local/share/deckhud/ui && mkdir -p ~/.local/share/deckhud && cp -r ui ~/.local/share/deckhud/ui && rm -rf ~/.local/share/deckhud/ui/tests",
+  "install -Dm644 packaging/systemd/deckhud.service ~/.config/systemd/user/deckhud.service",
+  "systemctl --user daemon-reload",
+  "echo 'installed; enable with: systemctl --user enable --now deckhud'",
+]
+
+[tasks.uninstall]
+description = "Stop and remove deckhud from $HOME"
+run = [
+  "systemctl --user disable --now deckhud || true",
+  "rm -f ~/.local/bin/deckhudd ~/.config/systemd/user/deckhud.service",
+  "rm -rf ~/.local/share/deckhud",
+  "systemctl --user daemon-reload",
+]

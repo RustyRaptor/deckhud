@@ -14,6 +14,12 @@ controllers, desktops and X11 are non-goals for v1.
 
 ---
 
+## Progress log
+
+- **2026-10-30:** M1–M6 core landed (parser, config model, HID, engine, daemon, overlay). Still needs hand-checking on the Deck: back-button bit mapping, radial geometry and fire behaviour, long/double-press timing, click-through.
+
+---
+
 ## 1. What we found on the target system (2026-10-30)
 
 | Item | Finding | Consequence |
@@ -141,7 +147,7 @@ commits.
 Each milestone is a small, demoable vertical slice. Checkboxes become GitHub issues.
 
 ### M0: Spikes (time-boxed, throwaway code, findings recorded in `docs/research/`)
-- [ ] **Overlay spike:** QML `Window` + `LayerShell.Window` (layer `LayerOverlay`, `keyboardInteractivity: None`,
+- [x] **Overlay spike** ([findings](research/overlay-spike.md)): QML `Window` + `LayerShell.Window` (layer `LayerOverlay`, `keyboardInteractivity: None`,
       `Qt.WindowTransparentForInput`), run via `/usr/lib/qt6/bin/qml`. Confirm transparency, click-through,
       stays above fullscreen apps, no focus steal, and that the touchscreen and pointer pass through.
 - [ ] **HID spike:** document the report `0x09` byte layout (buttons bitmask incl. L4/L5/R4/R5/QAM/…,
@@ -157,40 +163,40 @@ Each milestone is a small, demoable vertical slice. Checkboxes become GitHub iss
       If yes, it is an optional ground-truth source for chords.
 
 ### M1: Config model
-- [ ] `vdf` parser: quoted/unquoted tokens, escapes, `//` comments, `#include`/`#base`, duplicate keys, ordering
-- [ ] `binding` grammar: `key_press`, `mouse_button`, `mouse_wheel`, `xinput_button`, `controller_action …`
+- [x] `vdf` parser: quoted/unquoted tokens, escapes, `//` comments, `#include`/`#base`, duplicate keys, ordering
+- [x] `binding` grammar: `key_press`, `mouse_button`, `mouse_wheel`, `xinput_button`, `controller_action …`
       (`add_layer`, `hold_layer`, `remove_layer`, `change_preset`, `SHOW_KEYBOARD`, …), label + icon fields
-- [ ] `steamcfg`: presets (action sets), action layers, `group_source_bindings` (incl. `active`/`inactive`/modeshift),
+- [x] `steamcfg`: presets (action sets), action layers, `group_source_bindings` (incl. `active`/`inactive`/modeshift),
       groups by mode (`four_buttons`, `dpad`, `radial_menu`, `touch_menu`, `joystick_move`, `trigger`, …)
-- [ ] Resolver: userdata id → active desktop config (and per-app configs); `dump-config` CLI prints the model
+- [x] Resolver: userdata id → active desktop config (and per-app configs); `dump-config` CLI prints the model
 
 ### M2: Controller input
-- [ ] `hid` decoder (pure function: `[]byte → State`) tested with recorded reports
+- [x] `hid` decoder (pure function: `[]byte → State`) tested with recorded reports
 - [ ] Device discovery by VID/PID + usage page, reconnect on suspend/resume
-- [ ] `record` / `replay` subcommands
+- [x] `record` subcommand (`replay` still to do)
 
 ### M3: Engine
-- [ ] Activators: `Full_Press`, `Start_Press`, `Release_Press`, `Long_Press`, `Double_Press`, `chord`, plus
-      soft-press for triggers, all on an injectable clock
-- [ ] Action set switching and **layer stack** (add/hold/remove), with source-binding overrides per layer
-- [ ] Radial menu: open/close, per-frame highlight index, fired item
-- [ ] Chord events: button → resolved bindings → `{"glyph":"R4","keys":["Ctrl","Shift","T"],"label":"…"}`
+- [x] Activators: `Full_Press`, `Start_Press`, `Release_Press`, `Long_Press`, `Double_Press` on an injectable clock
+- [ ] `chord` activators, trigger soft-press, trackpad radial menus
+- [x] Action set switching and **layer stack** (add/hold/remove), with source-binding overrides per layer
+- [x] Radial menu: open/close, per-frame highlight index, fired item
+- [x] Chord events: button → resolved bindings → `{"glyph":"R4","keys":["Ctrl","Shift","T"],"label":"…"}`
 - [ ] Golden replay tests for each behaviour
 
 ### M4: Daemon + IPC
-- [ ] `appwatch` (tail log, handle rotation), config hot-reload via fsnotify
-- [ ] JSON-lines event protocol v1 (`hello`, `radial.open/highlight/close`, `chord`, `layer.changed`,
+- [x] `appwatch` (tail log, handle rotation), config hot-reload via fsnotify
+- [x] JSON event protocol v1 (over a token-guarded loopback **WebSocket**, since QML has no Unix-socket client) (`hello`, `radial.open/highlight/close`, `chord`, `layer.changed`,
       `actionset.changed`, `sheet.show/hide`, `config.reloaded`)
-- [ ] systemd user unit; only active in Plasma sessions (Game Mode already has Steam's own overlay)
+- [x] systemd user unit; only active in Plasma sessions (Game Mode already has Steam's own overlay)
 
 ### M5: Radial HUD (first user-visible feature)
-- [ ] `RadialHud.qml`: translucent accent-tinted ring, wedge per item, label + Steam binding icon,
+- [x] `RadialHud.qml`: translucent accent-tinted ring, wedge per item, label + Steam binding icon,
       animated highlight, "fired" flash, positioned per config (or centred)
-- [ ] QML tests for wedge maths and highlight state
+- [x] QML tests for wedge maths and highlight state
 
 ### M6: Chord toasts
-- [ ] `ChordToast.qml`: glyph + key caps, stacking/queueing, configurable timeout and screen corner
-- [ ] Coalesce repeats (holding a button doesn't spam), hide while a radial menu is open
+- [x] `ChordToast.qml`: glyph + key caps, stacking/queueing, configurable timeout and screen corner
+- [x] Coalesce repeats (holding a button doesn't spam), hide while a radial menu is open
 
 ### M7: Layer / action-set cheat sheet
 - [ ] `LayerSheet.qml`: Deck outline with callouts for every mapped control in the current layer
