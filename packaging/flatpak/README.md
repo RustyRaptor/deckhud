@@ -12,19 +12,15 @@ flatpak run io.github.RustyRaptor.deckhud autostart off
 
 ## Flathub
 
-The Flathub manifest is this file with the `type: dir` source replaced by the release tag:
+Not submitted. Flathub's [Generative AI policy](https://docs.flathub.org/docs/for-app-authors/requirements#generative-ai-policy)
+does not allow AI-generated or AI-assisted content in Flathub manifests, or AI-prepared submission
+pull requests, and requires disclosing AI-generated application code (much of deckhud was written
+with Claude). It also expects [meaningful development history](https://docs.flathub.org/docs/for-app-authors/requirements#insufficient-development-history).
+A Flathub submission, if any, has to be authored by the maintainer under those rules.
 
-```yaml
-      - type: git
-        url: https://github.com/RustyRaptor/deckhud.git
-        tag: vX.Y.Z
-        commit: <full sha of the tag>
-```
+The manifest here is for local builds and self-hosted distribution.
 
-When Go dependencies change, regenerate the `proxy.golang.org` archive sources and the inline
-`vendor/modules.txt` (`go mod vendor` prints it) in the manifest.
-
-### Permission rationale (for reviewers)
+## Permission rationale
 
 | Permission | Why |
 |---|---|

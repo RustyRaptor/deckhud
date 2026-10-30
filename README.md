@@ -10,6 +10,7 @@ On-screen HUD for Steam Input in **KDE Plasma (Wayland) Desktop Mode** on the St
 Overlays are translucent and click-through, and follow your KDE accent colour live (via the settings portal), even with a wallpaper slideshow.
 
 > Status: early development. See [docs/PLAN.md](docs/PLAN.md).
+> Much of this code was written with an AI assistant (Claude), test-first, and reviewed by the maintainer.
 
 ## How it works
 
@@ -39,7 +40,7 @@ mise run build
 
 ### Flatpak
 
-See [packaging/flatpak](packaging/flatpak/README.md). Flathub submission is in progress.
+Build and install locally: see [packaging/flatpak](packaging/flatpak/README.md). Not on Flathub (see that page for why).
 
 ### From source (per user)
 

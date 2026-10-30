@@ -16,6 +16,7 @@ controllers, desktops and X11 are non-goals for v1.
 
 ## Progress log
 
+- **2026-10-30 (later):** M7 cheat sheet (engine snapshot, QML `LayerSheet`, `deckhudd peek`), accent via the XDG settings portal (Kirigami didn't follow slideshow accents), Flatpak packaging verified ([spike](research/flatpak-spike.md)), MIT licence, `v0.1.0` tag. Flathub submission dropped: its policy forbids AI-assisted manifests/submissions.
 - **2026-10-30:** M1–M6 core landed (parser, config model, HID, engine, daemon, overlay). Still needs hand-checking on the Deck: back-button bit mapping, radial geometry and fire behaviour, long/double-press timing, click-through.
 
 ---
@@ -199,9 +200,9 @@ Each milestone is a small, demoable vertical slice. Checkboxes become GitHub iss
 - [x] Coalesce repeats (holding a button doesn't spam), hide while a radial menu is open
 
 ### M7: Layer / action-set cheat sheet
-- [ ] `LayerSheet.qml`: Deck outline with callouts for every mapped control in the current layer
-- [ ] Shows briefly on layer/action-set change; **hold-to-show** chord (configurable) to peek at any time
-- [ ] Highlights what changed relative to the base layer
+- [x] `LayerSheet.qml`: Deck outline with callouts for every mapped control in the current layer
+- [x] Shows briefly on layer/action-set change; **hold-to-show** chord (configurable) to peek at any time
+- [x] Highlights what changed relative to the base layer
 
 ### M8: Polish & release
 - [ ] Settings file (`~/.config/deckhud/config.toml`): enable/disable features, opacity, scale, positions,
