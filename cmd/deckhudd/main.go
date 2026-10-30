@@ -23,6 +23,9 @@ import (
 const usage = `usage: deckhudd <command>
 
 commands:
+  run [ui-dir]    run the daemon and launch the overlay from ui-dir
+                  (default: ../share/deckhud/ui next to the binary)
+  events          run without the overlay, printing events as JSON lines
   find            print the Deck controller hidraw device
   dump            print the active Steam Input config as deckhud sees it
   monitor         print button changes and stick angles live
@@ -39,6 +42,14 @@ func main() {
 
 	var err error
 	switch os.Args[1] {
+	case "run":
+		dir := defaultUIDir()
+		if len(os.Args) > 2 {
+			dir = os.Args[2]
+		}
+		err = run(ctx, runOpts{uiDir: dir})
+	case "events":
+		err = run(ctx, runOpts{print: true})
 	case "find":
 		var dev string
 		if dev, err = hid.Find("/sys"); err == nil {
@@ -145,7 +156,7 @@ func activeConfig() (*steamcfg.Config, string, appwatch.State, error) {
 	if err != nil {
 		return nil, "", st, err
 	}
-	for _, line := range strings.Split(string(log), "\n") {
+	for _, line := range splitLines(string(log)) {
 		st.Feed(line)
 	}
 	st.Flush()
@@ -202,4 +213,14 @@ func dump() error {
 		}
 	}
 	return nil
+}
+
+func splitLines(s string) []string { return strings.Split(s, "\n") }
+
+func defaultUIDir() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return "ui"
+	}
+	return filepath.Join(filepath.Dir(exe), "..", "share", "deckhud", "ui")
 }
