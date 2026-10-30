@@ -17,6 +17,7 @@ import (
 
 	"github.com/RustyRaptor/deckhud/internal/accent"
 	"github.com/RustyRaptor/deckhud/internal/appwatch"
+	"github.com/RustyRaptor/deckhud/internal/control"
 	"github.com/RustyRaptor/deckhud/internal/engine"
 	"github.com/RustyRaptor/deckhud/internal/hid"
 	"github.com/RustyRaptor/deckhud/internal/ipc"
@@ -47,6 +48,15 @@ type daemon struct {
 
 func run(ctx context.Context, opts runOpts) error {
 	d := &daemon{opts: opts}
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	ready, served := make(chan struct{}), make(chan error, 1)
+	go func() { served <- control.Serve(ctx, control.DefaultPath(), ready, d.command) }()
+	select {
+	case <-ready:
+	case err := <-served:
+		return err
+	}
 	token := randomToken()
 	d.hub = ipc.NewHub(token, d.greeting)
 
@@ -69,7 +79,6 @@ func run(ctx context.Context, opts runOpts) error {
 		d.mu.Unlock()
 		d.emit(accentMsg(hex))
 	})
-	ctx, cancel := context.WithCancel(ctx)
 	var ui sync.WaitGroup
 	defer func() { cancel(); ui.Wait() }() // never leave an orphaned overlay
 	if opts.uiDir != "" {
@@ -104,6 +113,16 @@ func (d *daemon) greeting() []any {
 		msgs = append(msgs, engine.Event{Type: "state", State: &st, Sheet: &sh})
 	}
 	return msgs
+}
+
+// command handles control-socket commands from 'deckhudd peek' and friends.
+func (d *daemon) command(cmd string) error {
+	switch cmd {
+	case "peek":
+		d.emit(map[string]any{"type": "peek"})
+		return nil
+	}
+	return control.ErrUnknown
 }
 
 func accentMsg(hex string) map[string]any { return map[string]any{"type": "accent", "color": hex} }

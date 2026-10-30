@@ -16,6 +16,7 @@ import (
 
 	"github.com/RustyRaptor/deckhud/internal/appwatch"
 	"github.com/RustyRaptor/deckhud/internal/binding"
+	"github.com/RustyRaptor/deckhud/internal/control"
 	"github.com/RustyRaptor/deckhud/internal/hid"
 	"github.com/RustyRaptor/deckhud/internal/steamcfg"
 )
@@ -27,6 +28,8 @@ commands:
                   (default: ../share/deckhud/ui next to the binary)
   events          run without the overlay, printing events as JSON lines
   demo [ui-dir]   play a scripted session through the overlay (no controller needed)
+  peek            toggle the cheat sheet in the running daemon
+                  (bind it to a KDE shortcut, then map a Steam button to that)
   find            print the Deck controller hidraw device
   dump            print the active Steam Input config as deckhud sees it
   monitor         print button changes and stick angles live
@@ -57,6 +60,8 @@ func main() {
 		err = demo(ctx, dir)
 	case "events":
 		err = run(ctx, runOpts{print: true})
+	case "peek":
+		err = control.Send(control.DefaultPath(), "peek")
 	case "find":
 		var dev string
 		if dev, err = hid.Find("/sys"); err == nil {
