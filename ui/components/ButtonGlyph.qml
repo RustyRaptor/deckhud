@@ -13,14 +13,15 @@ Item {
         if (["L1", "R1"].includes(button)) return "bumper"
         if (["L2", "R2"].includes(button)) return "trigger"
         if (["L4", "L5", "R4", "R5"].includes(button)) return "back"
-        if (["Up", "Down", "Left", "Right"].includes(button)) return "dpad"
-        if (["L3", "R3"].includes(button)) return "stick"
-        if (["LPadClick", "RPadClick"].includes(button)) return "pad"
+        if (["Up", "Down", "Left", "Right", "D-pad"].includes(button)) return "dpad"
+        if (["L3", "R3", "LS", "RS"].includes(button)) return "stick"
+        if (["LPadClick", "RPadClick", "LPad", "RPad"].includes(button)) return "pad"
         return "system"
     }
     readonly property string glyphText: {
         const symbols = { Up: "▲", Down: "▼", Left: "◀", Right: "▶", View: "⧉", Menu: "☰",
-                          Steam: "STEAM", QAM: "•••", LPadClick: "LP", RPadClick: "RP" }
+                          Steam: "STEAM", QAM: "•••", "D-pad": "✛",
+                          LPadClick: "LP", RPadClick: "RP", LPad: "LP", RPad: "RP" }
         return symbols[button] ?? button
     }
 

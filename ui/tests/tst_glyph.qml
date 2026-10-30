@@ -30,6 +30,10 @@ Item {
                 { tag: "View", button: "View", shape: "system", text: "⧉" },
                 { tag: "Menu", button: "Menu", shape: "system", text: "☰" },
                 { tag: "LPadClick", button: "LPadClick", shape: "pad", text: "LP" },
+                { tag: "LS", button: "LS", shape: "stick", text: "LS" },
+                { tag: "RS", button: "RS", shape: "stick", text: "RS" },
+                { tag: "D-pad", button: "D-pad", shape: "dpad", text: "✛" },
+                { tag: "RPad", button: "RPad", shape: "pad", text: "RP" },
                 { tag: "unknown", button: "Weird", shape: "system", text: "Weird" }
             ]
         }

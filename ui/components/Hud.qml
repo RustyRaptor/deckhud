@@ -7,9 +7,12 @@ Item {
     property color accent: "#9a93e3"
     property string iconDir: ""
     property bool quietNextState: false
+    property var lastSheet: null
+    property int sheetTimeout: 2500
     readonly property alias radial: radialHud
     readonly property alias toasts: chordToasts
     readonly property alias banner: stateBanner
+    readonly property alias sheet: layerSheet
 
     function handleText(text) {
         let msg
@@ -36,14 +39,24 @@ Item {
             break
         case "state": {
             const text = [msg.state.set].concat(msg.state.layers ?? []).join(" › ")
+            if (msg.sheet)
+                lastSheet = msg.sheet
             if (quietNextState) {
                 stateBanner.text = text
                 quietNextState = false
+            } else if (msg.sheet && !radialHud.active) {
+                layerSheet.show(msg.sheet, sheetTimeout)
             } else {
                 stateBanner.show(text)
             }
             break
         }
+        case "peek":
+            if (layerSheet.active)
+                layerSheet.hide()
+            else if (lastSheet)
+                layerSheet.show(lastSheet, 0)
+            break
         }
     }
 
@@ -51,6 +64,7 @@ Item {
         switch (r.phase) {
         case "open":
             chordToasts.clear()
+            layerSheet.hide()
             radialHud.open(r.items ?? [], r.title ?? "", r.index)
             break
         case "move":
@@ -65,6 +79,11 @@ Item {
         }
     }
 
+    LayerSheet {
+        id: layerSheet
+        anchors.fill: parent
+        accent: hud.accent
+    }
     RadialHud {
         id: radialHud
         anchors.fill: parent

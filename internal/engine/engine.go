@@ -22,6 +22,7 @@ type Event struct {
 	Chord  *Chord    `json:"chord,omitempty"`
 	Radial *Radial   `json:"radial,omitempty"`
 	State  *SetState `json:"state,omitempty"`
+	Sheet  *Sheet    `json:"sheet,omitempty"` // with state events
 }
 
 // Chord reports a button activator that sent output (keys, mouse, pad, ...).
@@ -357,8 +358,8 @@ func (e *Engine) removeLayer(l *steamcfg.Set) {
 }
 
 func (e *Engine) stateEvent() Event {
-	st := e.State()
-	return Event{Type: "state", State: &st}
+	st, sh := e.State(), e.Sheet()
+	return Event{Type: "state", State: &st, Sheet: &sh}
 }
 
 // radial tracks a stick bound to a radial_menu group.
