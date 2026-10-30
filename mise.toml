@@ -14,11 +14,11 @@ run = "go test ./..."
 
 [tasks."test:qml"]
 description = "Run QML tests offscreen"
-run = "[ -d ui/tests ] && QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input ui/tests -import ui || true"
+run = "QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 /usr/lib/qt6/bin/qmltestrunner -input ui/tests"
 
 [tasks.check]
 description = "Vet and format check"
-run = ["go vet ./...", "test -z \"$(gofmt -l .)\""]
+run = ["go vet ./...", "test -z \"$(gofmt -l .)\"", "/usr/lib/qt6/bin/qmllint ui/components/*.qml ui/main.qml"]
 
 [tasks.build]
 description = "Build the daemon"

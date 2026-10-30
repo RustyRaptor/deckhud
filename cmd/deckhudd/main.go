@@ -26,6 +26,7 @@ commands:
   run [ui-dir]    run the daemon and launch the overlay from ui-dir
                   (default: ../share/deckhud/ui next to the binary)
   events          run without the overlay, printing events as JSON lines
+  demo [ui-dir]   play a scripted session through the overlay (no controller needed)
   find            print the Deck controller hidraw device
   dump            print the active Steam Input config as deckhud sees it
   monitor         print button changes and stick angles live
@@ -48,6 +49,12 @@ func main() {
 			dir = os.Args[2]
 		}
 		err = run(ctx, runOpts{uiDir: dir})
+	case "demo":
+		dir := defaultUIDir()
+		if len(os.Args) > 2 {
+			dir = os.Args[2]
+		}
+		err = demo(ctx, dir)
 	case "events":
 		err = run(ctx, runOpts{print: true})
 	case "find":

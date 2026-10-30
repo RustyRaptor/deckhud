@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/RustyRaptor/deckhud/internal/appwatch"
@@ -24,8 +25,9 @@ import (
 const protocolVersion = 1
 
 type runOpts struct {
-	uiDir string // directory holding main.qml; empty = don't launch the UI
-	print bool   // print events as JSON lines on stdout
+	uiDir  string     // directory holding main.qml; empty = don't launch the UI
+	print  bool       // print events as JSON lines on stdout
+	script []demoStep // play this instead of reading the controller
 }
 
 // daemon owns the engine and the config it was built from.
@@ -59,8 +61,15 @@ func run(ctx context.Context, opts runOpts) error {
 		fmt.Fprintln(os.Stderr, "deckhudd: config:", err)
 	}
 	go d.watchConfig(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	var ui sync.WaitGroup
+	defer func() { cancel(); ui.Wait() }() // never leave an orphaned overlay
 	if opts.uiDir != "" {
-		go superviseUI(ctx, opts.uiDir, url)
+		ui.Go(func() { superviseUI(ctx, opts.uiDir, url) })
+	}
+	if opts.script != nil {
+		d.playScript(ctx, opts.script)
+		return nil
 	}
 	d.readController(ctx)
 	return nil
@@ -174,17 +183,7 @@ func (d *daemon) readController(ctx context.Context) {
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "deckhudd: controller:", err)
 		} else {
-			err = hid.Stream(f, func(s hid.State) {
-				d.mu.Lock()
-				var evs []engine.Event
-				if d.eng != nil {
-					evs = d.eng.Update(s, time.Now())
-				}
-				d.mu.Unlock()
-				for _, e := range evs {
-					d.emit(e)
-				}
-			})
+			err = hid.Stream(f, d.feed)
 			f.Close()
 			if err != nil && ctx.Err() == nil {
 				fmt.Fprintln(os.Stderr, "deckhudd: controller:", err)
@@ -204,6 +203,9 @@ func superviseUI(ctx context.Context, dir, url string) {
 		cmd := exec.CommandContext(ctx, qml, filepath.Join(dir, "main.qml"), "--", url)
 		cmd.Env = append(os.Environ(), "QT_FORCE_STDERR_LOGGING=1")
 		cmd.Stdout, cmd.Stderr = os.Stderr, os.Stderr
+		cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGTERM}
+		cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
+		cmd.WaitDelay = 2 * time.Second
 		if err := cmd.Run(); err != nil && ctx.Err() == nil {
 			fmt.Fprintln(os.Stderr, "deckhudd: ui exited:", err)
 		}
