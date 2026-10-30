@@ -29,8 +29,9 @@ commands:
                   (default: ../share/deckhud/ui next to the binary)
   events          run without the overlay, printing events as JSON lines
   demo [ui-dir]   play a scripted session through the overlay (no controller needed)
-  autostart on|off  start with Plasma via the Background portal (Flatpak);
-                  native installs use the systemd user unit instead
+  autostart on|off  start with Plasma: Background portal in Flatpak, an XDG
+                  autostart entry otherwise (AppImage); 'mise run install'
+                  uses a systemd user unit instead
   peek            toggle the cheat sheet in the running daemon
                   (bind it to a KDE shortcut, then map a Steam button to that)
   find            print the Deck controller hidraw device
@@ -63,11 +64,7 @@ func main() {
 	case "events":
 		err = run(ctx, runOpts{print: true})
 	case "autostart":
-		enable := len(os.Args) < 3 || os.Args[2] != "off"
-		var granted bool
-		if granted, err = autostart.Request(ctx, enable, []string{"deckhudd", "run"}); err == nil {
-			fmt.Println("autostart:", map[bool]string{true: "on", false: "off"}[granted])
-		}
+		err = setAutostart(ctx, len(os.Args) < 3 || os.Args[2] != "off")
 	case "peek":
 		err = control.Send(control.DefaultPath(), "peek")
 	case "find":
@@ -251,4 +248,33 @@ func defaultUIDir() string {
 		return "ui"
 	}
 	return filepath.Join(filepath.Dir(exe), "..", "share", "deckhud", "ui")
+}
+
+// setAutostart uses the Background portal inside Flatpak and an XDG autostart
+// entry otherwise, pointing at the AppImage itself when run from one.
+func setAutostart(ctx context.Context, enable bool) error {
+	state := map[bool]string{true: "on", false: "off"}
+	if os.Getenv("FLATPAK_ID") != "" {
+		granted, err := autostart.Request(ctx, enable, []string{"deckhudd", "run"})
+		if err == nil {
+			fmt.Println("autostart:", state[granted])
+		}
+		return err
+	}
+	self := os.Getenv("APPIMAGE")
+	if self == "" {
+		var err error
+		if self, err = os.Executable(); err != nil {
+			return err
+		}
+	}
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return err
+	}
+	path, err := autostart.WriteXDG(filepath.Join(dir, "autostart"), enable, []string{self, "run"})
+	if err == nil {
+		fmt.Printf("autostart: %s (%s)\n", state[enable], path)
+	}
+	return err
 }
