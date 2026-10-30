@@ -83,9 +83,24 @@ func Chord(bs []Binding) []string {
 	return append(mods, rest...)
 }
 
-// Describe renders a single binding. A non-localised user label wins.
+// Label returns the first user label among bs, ignoring "#Localization"
+// tokens. Steam stores an activator's label on one of its bindings.
+func Label(bs []Binding) string {
+	for _, b := range bs {
+		if userLabel(b) {
+			return b.Label
+		}
+	}
+	return ""
+}
+
+func userLabel(b Binding) bool { return b.Label != "" && !strings.HasPrefix(b.Label, "#") }
+
+// Describe renders a single binding. Physical outputs (keys, mouse, pad) are
+// always named by what they send; other bindings prefer a user label.
 func Describe(b Binding) string {
-	if b.Label != "" && !strings.HasPrefix(b.Label, "#") {
+	physical := b.Kind == KeyPress || b.Kind == MouseButton || b.Kind == MouseWheel || b.Kind == XInputButton
+	if !physical && userLabel(b) {
 		return b.Label
 	}
 	arg := ""

@@ -258,11 +258,9 @@ func (g *Group) MenuItems() []MenuItem {
 		if err != nil {
 			continue
 		}
-		it := MenuItem{Index: idx, Input: name, Activators: acts, Bindings: acts[0].Bindings}
+		it := MenuItem{Index: idx, Input: name, Activators: acts, Bindings: acts[0].Bindings,
+			Label: binding.Label(acts[0].Bindings)}
 		for _, b := range it.Bindings {
-			if it.Label == "" {
-				it.Label = b.Label
-			}
 			if it.Icon == "" {
 				it.Icon = b.Icon
 			}

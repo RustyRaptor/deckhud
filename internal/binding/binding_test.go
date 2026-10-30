@@ -120,6 +120,8 @@ func TestChord(t *testing.T) {
 		{"mouse and wheel", parse("mouse_button RIGHT, , ", "mouse_wheel SCROLL_UP"),
 			[]string{"Right Click", "Scroll ↑"}},
 		{"gamepad", parse("xinput_button A, , ", "xinput_button dpad_up"), []string{"Pad A", "Pad ↑"}},
+		{"labels never replace key names",
+			parse("key_press LEFT_CONTROL, , ", "key_press Z, Undo, "), []string{"Ctrl", "Z"}},
 		{"label wins for actions", parse("controller_action SHOW_KEYBOARD, ⌨️, , "), []string{"⌨️"}},
 		{"action without label", parse("controller_action SCREENSHOT, , "), []string{"Screenshot"}},
 		{"empty", nil, nil},
@@ -130,5 +132,15 @@ func TestChord(t *testing.T) {
 				t.Errorf("Chord = %q, want %q", got, c.want)
 			}
 		})
+	}
+}
+
+func TestLabel(t *testing.T) {
+	bs := []Binding{Parse("key_press LEFT_CONTROL, , "), Parse("key_press Z, Undo, "), Parse("key_press X, Other, ")}
+	if got := Label(bs); got != "Undo" {
+		t.Errorf("Label = %q, want first user label", got)
+	}
+	if got := Label([]Binding{Parse("game_action Default B, #Action_Cancel, , ")}); got != "" {
+		t.Errorf("localisation tokens are not labels, got %q", got)
 	}
 }
