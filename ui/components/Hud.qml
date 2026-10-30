@@ -5,6 +5,7 @@ Item {
     id: hud
 
     property color accent: "#9a93e3"
+    Behavior on accent { ColorAnimation { duration: 400 } }
     property string iconDir: ""
     property bool quietNextState: false
     property var lastSheet: null
@@ -27,6 +28,10 @@ Item {
 
     function handle(msg) {
         switch (msg.type) {
+        case "accent":
+            if (/^#[0-9a-fA-F]{6}$/.test(msg.color ?? ""))
+                accent = msg.color
+            break
         case "hello":
             quietNextState = true
             break

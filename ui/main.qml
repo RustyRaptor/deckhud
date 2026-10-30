@@ -1,7 +1,6 @@
 import QtQuick
 import QtCore
 import QtWebSockets
-import org.kde.kirigami as Kirigami
 import org.kde.layershell as LayerShell
 import "components"
 
@@ -27,10 +26,8 @@ Window {
     Hud {
         id: hud
         anchors.fill: parent
-        accent: Kirigami.Theme.highlightColor
         iconDir: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
                  + "/Steam/tenfoot/resource/images/library/controller/binding_icons"
-        Behavior on accent { ColorAnimation { duration: 400 } }
     }
 
     WebSocket {

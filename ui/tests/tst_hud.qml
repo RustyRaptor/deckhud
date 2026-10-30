@@ -66,5 +66,14 @@ Item {
             h.handle({ type: "bogus" })
             compare(h.toasts.count, 1)
         }
+    
+        function test_accentMessage() {
+            const h = createTemporaryObject(hudComponent, root)
+            h.handle({ type: "accent", color: "#f09cca" })
+            tryCompare(h, "accent", Qt.color("#f09cca"), 2000)
+            h.handle({ type: "accent", color: "not a colour" })
+            wait(600)
+            compare(h.accent, Qt.color("#f09cca"), "invalid colours are ignored")
+        }
     }
 }

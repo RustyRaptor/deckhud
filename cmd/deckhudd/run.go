@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/RustyRaptor/deckhud/internal/accent"
 	"github.com/RustyRaptor/deckhud/internal/appwatch"
 	"github.com/RustyRaptor/deckhud/internal/engine"
 	"github.com/RustyRaptor/deckhud/internal/hid"
@@ -41,6 +42,7 @@ type daemon struct {
 	cfgPath string
 	cfgMod  time.Time
 	app     appwatch.State
+	accent  string
 }
 
 func run(ctx context.Context, opts runOpts) error {
@@ -61,6 +63,12 @@ func run(ctx context.Context, opts runOpts) error {
 		fmt.Fprintln(os.Stderr, "deckhudd: config:", err)
 	}
 	go d.watchConfig(ctx)
+	go accent.Watch(ctx, func(hex string) {
+		d.mu.Lock()
+		d.accent = hex
+		d.mu.Unlock()
+		d.emit(accentMsg(hex))
+	})
 	ctx, cancel := context.WithCancel(ctx)
 	var ui sync.WaitGroup
 	defer func() { cancel(); ui.Wait() }() // never leave an orphaned overlay
@@ -87,13 +95,18 @@ func (d *daemon) greeting() []any {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	msgs := []any{map[string]any{"type": "hello", "version": protocolVersion}}
+	if d.accent != "" {
+		msgs = append(msgs, accentMsg(d.accent))
+	}
 	if d.eng != nil {
 		msgs = append(msgs, d.configMsg())
-		st := d.eng.State()
-		msgs = append(msgs, engine.Event{Type: "state", State: &st})
+		st, sh := d.eng.State(), d.eng.Sheet()
+		msgs = append(msgs, engine.Event{Type: "state", State: &st, Sheet: &sh})
 	}
 	return msgs
 }
+
+func accentMsg(hex string) map[string]any { return map[string]any{"type": "accent", "color": hex} }
 
 func (d *daemon) configMsg() map[string]any {
 	return map[string]any{"type": "config", "app": d.app.App, "title": d.cfg.Title}
@@ -143,11 +156,11 @@ func (d *daemon) reload(full bool) error {
 	}
 	d.cfg, d.cfgPath, d.cfgMod = cfg, path, st.ModTime()
 	d.eng = engine.New(cfg, engine.Options{})
-	st2 := d.eng.State()
+	st2, sh := d.eng.State(), d.eng.Sheet()
 	go func(cfgMsg map[string]any, state engine.Event) { // emit outside the lock
 		d.emit(cfgMsg)
 		d.emit(state)
-	}(d.configMsg(), engine.Event{Type: "state", State: &st2})
+	}(d.configMsg(), engine.Event{Type: "state", State: &st2, Sheet: &sh})
 	return nil
 }
 

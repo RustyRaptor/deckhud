@@ -86,7 +86,7 @@ func (e *Engine) control(glyph, source, input string, layers []*steamcfg.Set, sh
 	if g == nil {
 		return nil
 	}
-	c := &Control{Glyph: glyph, Source: source, Mode: g.Mode}
+	c := &Control{Glyph: glyph, Source: source, Mode: g.Mode, Entries: []Entry{}}
 	if input != "" {
 		c.Entries = entries("", e.cfg.Activators(e.base, layers, shifted, source, input))
 		if len(c.Entries) == 0 {

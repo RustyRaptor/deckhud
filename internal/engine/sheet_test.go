@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -111,4 +113,15 @@ func TestStateEventsCarryTheSheet(t *testing.T) {
 		}
 	}
 	t.Fatal("no state event")
+}
+
+func TestSheetJSONHasNoNullEntries(t *testing.T) {
+	s := newSim(t, "desktop_neptune.vdf")
+	data, err := json.Marshal(s.e.Sheet())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), `"entries":null`) {
+		t.Errorf("controls without inputs must encode entries as [], got %s", data)
+	}
 }
